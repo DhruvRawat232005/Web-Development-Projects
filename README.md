@@ -29,13 +29,23 @@ EventEase is a modern, interactive event booking web app built with **Flask**, *
 ```bash
 git clone https://github.com/yourusername/EventEase.git
 cd EventEase
+```
 
 ### 2. Set Up a Virtual Environment
+
+```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate
+```  
 
 ### 3. Install Dependencies
+
+```bash
 pip install flask flask_sqlalchemy flask_cors stripe
+```
 
 ### 4. Run the App
+
+```bash
 python app.py
+```
