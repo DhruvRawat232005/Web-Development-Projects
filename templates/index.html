@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Event Booking</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <nav>
+    <span onclick="showPage('home')">Home</span>
+    <span onclick="showPage('book')">Book an Event</span>
+    <span onclick="showPage('search')">Search Event</span>
+    <span onclick="showPage('contact')">Contact Us</span>
+    <span onclick="showPage('cart'); showCart()">Cart</span>
+  </nav>
+
+  <div id="home" class="page active home-bg">
+  <div class="home-content">
+    <h1>Welcome to EventEase</h1>
+    <p>Your one-stop solution to unforgettable events.</p>
+    <p>Events Offered by us are below !</p>
+    <table class="event-table">
+      <thead>
+        <tr>
+          <th>Event Type</th>
+          <th>Average Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Wedding</td>
+          <td>₹2,00,000</td>
+        </tr>
+        <tr>
+          <td>Birthday Party</td>
+          <td>₹50,000</td>
+        </tr>
+        <tr>
+          <td>Corporate Event</td>
+          <td>₹1,20,000</td>
+        </tr>
+        <tr>
+          <td>Concert</td>
+          <td>₹5,00,000</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  <div id="book" class="page">
+  <div class="form-container">
+    <h1>Book an Event</h1>
+    <form id="bookingForm">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" required />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" required />
+
+      <label for="eventType">Event Type</label>
+      <select id="eventType" required>
+        <option value="">Select</option>
+        <option value="Wedding">Wedding</option>
+        <option value="Birthday Party">Birthday Party</option>
+        <option value="Corporate Event">Corporate Event</option>
+        <option value="Concert">Concert</option>
+      </select>
+
+      <label for="date">Event Date</label>
+      <input type="date" id="date" required />
+
+      <label for="guests">Number of Guests</label>
+      <input type="number" id="guests" required />
+
+      <!-- Add-ons -->
+      <h3>Add-ons</h3>
+
+      <label><input type="checkbox" value="food" /> Food (₹500 per plate)</label><br>
+      <label><input type="checkbox" value="decor" /> Decoration (₹5,000)</label><br>
+      <label><input type="checkbox" value="drinks" /> Drinks (₹2,000)</label><br>
+      <label><input type="checkbox" value="mic" /> Mic & Speakers (₹3,000)</label>
+
+      <br><br>
+      <button type="submit">Submit Booking</button>
+    </form>
+    <p id="formMessage" class="form-message"></p>
+  </div>
+</div>
+
+  <div id="search" class="page">
+  <div class="search-container">
+    <h1>Search for Events</h1>
+    <label for="searchDate">Select a Date:</label>
+    <input type="date" id="searchDate">
+    <button onclick="searchEvents()">Search</button>
+
+    <div id="eventResults" class="card-container"></div>
+  </div>
+</div>
+
+  <div id="contact" class="page">
+  <h1>Contact Us</h1>
+  <p>Email: contact@eventease.com</p>
+
+  <div class="contact-card">
+    <img src="/static/developer-photo.jpg" alt="Developer Photo" class="contact-photo" />
+    <div class="contact-info">
+      <h2>Dhruv Rawat</h2>
+      <p><strong>Designation:</strong> Lead Developer</p>
+      <p><strong>Phone:</strong> +91 987654XXXX</p>
+      <p><strong>Email:</strong> dhruv.rawat1@gmail.com</p>
+    </div>
+  </div>
+</div>
+
+  <!-- Cart Page -->
+<div id="cart" class="page">
+  <div class="form-container">
+    <h1>Your Cart</h1>
+    <div id="cartContent"></div>
+    <div id="cartItems">Oops! Your cart is empty.</div>
+    <button id="payBtn" style="margin-top: 20px; color: white; padding: 10px 20px;background-color: green;">Pay Now</button>
+  </div>
+</div>
+
+<script>
+    // Your Stripe publishable key here (NOT secret key)
+    const stripe = Stripe('pk_test_51RWG9FB7bjw5YCkrDGWtNZRMxjBF97bjENXXXXX'); // REPLACE with your Stripe publishable key
+
+    async function loadCart() {
+      const res = await fetch('/cart');
+      const data = await res.json();
+      const cartDiv = document.getElementById('cartContent');
+      if (data.length === 0) {
+        cartDiv.innerHTML = "<p>Cart is empty</p>";
+        return;
+      }
+      let html = '<ul>';
+      data.forEach(item => {
+        html += `<li>${item.event} | Addons: ${item.addons} | Cost: ₹${item.total_cost}</li>`;
+      });
+      html += '</ul>';
+      cartDiv.innerHTML = html;
+    }
+
+    document.getElementById('payBtn').addEventListener('click', async () => {
+      const res = await fetch('/create-checkout-session', { method: 'POST' });
+      const session = await res.json();
+      if (session.error) {
+        alert('Payment initialization failed: ' + session.error);
+        return;
+      }
+      const result = await stripe.redirectToCheckout({ sessionId: session.id });
+      if (result.error) {
+        alert(result.error.message);
+      }
+    });
+
+    loadCart();
+  </script>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
